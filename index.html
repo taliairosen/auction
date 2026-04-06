@@ -19,7 +19,7 @@
     align-items:center;
     justify-content:space-between;
     overflow:hidden;
-    padding:env(safe-area-inset-top,36px) 12px env(safe-area-inset-bottom,24px);
+    padding:env(safe-area-inset-top,36px) 12px env(safe-area-inset-bottom,10px);
   }
   #status {
     font-size:14px;
@@ -34,7 +34,7 @@
     align-items:center;
     justify-content:center;
     width:100%;
-    padding:8px 0;
+    padding:6px 0;
   }
   #buy-btn {
     width:100%;
@@ -45,60 +45,53 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:center;
+    justify-content:flex-start;
+    padding-top:9vw;
     cursor:pointer;
     transition:transform 0.12s, border-color 0.4s, background 0.4s;
     user-select:none;
     -webkit-user-select:none;
     position:relative;
-    gap:0px;
   }
   #buy-btn:active { transform:scale(0.98); }
   #btn-action {
-    font-size:40px;
+    font-size:60px;
     font-weight:600;
-    letter-spacing:0px;
     transition:color 0.4s;
     color:#30d158;
     line-height:1;
-    margin-bottom:8px;
+    margin-bottom:6vw;
   }
   #amount-number {
-    font-size:108px;
+    font-size:184px;
     font-weight:200;
-    letter-spacing:-5px;
+    letter-spacing:-8px;
     color:#fff;
-    line-height:1;
+    line-height:0.9;
     transition:color 0.4s;
   }
   #amount-unit {
-    font-size:26px;
+    font-size:39px;
     font-weight:300;
     color:#aaa;
     letter-spacing:1px;
     line-height:1;
     transition:color 0.4s;
-    margin-top:4px;
-  }
-  #btn-sub {
-    font-size:14px;
-    color:#30d15877;
-    margin-top:14px;
-    transition:color 0.4s;
-    line-height:1;
+    margin-top:6px;
   }
   #bottom {
     display:flex;
     justify-content:center;
-    padding-bottom:4px;
+    padding-bottom:10px;
+    margin-bottom:8px;
   }
   .ctrl-btn {
     background:#222;
     border:1px solid #444;
-    border-radius:28px;
+    border-radius:32px;
     color:#fff;
-    font-size:19px;
-    padding:15px 64px;
+    font-size:26px;
+    padding:18px 80px;
     cursor:pointer;
     font-family:inherit;
   }
@@ -119,9 +112,8 @@
 <div id="middle">
   <div id="buy-btn" onclick="handleBtn()">
     <div id="btn-action">Start Auction</div>
-    <div id="amount-number">$20</div>
+    <div id="amount-number">20</div>
     <div id="amount-unit">million</div>
-    <div id="btn-sub">tap to begin</div>
   </div>
 </div>
 
@@ -141,8 +133,7 @@ function easeInterval(step){
   return 700+t*t*700;
 }
 
-function fmt(m){ return m<=0?'$0':'$'+m; }
-function fmtUnit(m){ return m<=0?'':m===1?'million':'million'; }
+function fmt(m){ return m<=0?'0':''+m; }
 
 function setAmountColor(m){
   const pct=m/START;
@@ -155,28 +146,26 @@ function setAmountColor(m){
 
 function render(){
   document.getElementById('amount-number').textContent=fmt(current);
-  document.getElementById('amount-unit').textContent=fmtUnit(current);
   setAmountColor(current);
 }
 
 function applyTheme(theme){
   const b=document.getElementById('buy-btn');
   const act=document.getElementById('btn-action');
-  const sub=document.getElementById('btn-sub');
+  const unit=document.getElementById('amount-unit');
   if(theme==='idle'){
     b.style.borderColor='#30d158'; b.style.background='#0a1f0a';
     act.style.color='#30d158'; act.textContent='Start Auction';
-    sub.textContent='tap to begin'; sub.style.color='#30d15877';
+    unit.style.color='#aaa';
   } else if(theme==='running'){
     b.style.borderColor='#ff9f0a'; b.style.background='#1f140a';
     act.style.color='#ff9f0a'; act.textContent='BUY';
-    sub.textContent='tap to buy now'; sub.style.color='#ff9f0a77';
+    unit.style.color='#aaa';
   } else if(theme==='sold'){
     b.style.borderColor='#5ac8fa'; b.style.background='#0a1a2a';
     act.style.color='#5ac8fa'; act.textContent='SOLD!';
-    sub.textContent=fmt(current)+' million'; sub.style.color='#5ac8faaa';
     document.getElementById('amount-number').style.color='#5ac8fa';
-    document.getElementById('amount-unit').style.color='#5ac8fa88';
+    unit.style.color='#5ac8fa88';
   }
 }
 
@@ -186,7 +175,7 @@ function tick(step){
   render();
   if(current<=0){
     running=false;
-    document.getElementById('status').textContent='sold at $0!';
+    document.getElementById('status').textContent='sold at 0!';
     applyTheme('sold');
     launchFireworks();
     return;
