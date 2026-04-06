@@ -17,9 +17,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     overflow: hidden;
-    padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 20px);
+    padding: env(safe-area-inset-top, 40px) 0 env(safe-area-inset-bottom, 30px);
+  }
+  #top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
   }
   #label {
     font-size: 13px;
@@ -29,12 +35,11 @@
     margin-bottom: 10px;
   }
   #amount {
-    font-size: 52px;
+    font-size: 58px;
     font-weight: 200;
     letter-spacing: -2px;
     color: #fff;
     transition: color 0.4s;
-    margin-bottom: 6px;
     text-align: center;
     padding: 0 10px;
   }
@@ -42,8 +47,13 @@
     font-size: 14px;
     color: #555;
     height: 20px;
-    margin-bottom: 32px;
+    margin-top: 6px;
     text-align: center;
+  }
+  #middle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   #buy-btn {
     width: 72vw;
@@ -64,22 +74,25 @@
   }
   #buy-btn:active { transform: scale(0.94); }
   #btn-main {
-    font-size: 58px;
+    font-size: 48px;
     font-weight: 600;
     color: #30d158;
     letter-spacing: -1px;
     transition: color 0.3s;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.1;
   }
   #btn-sub {
     font-size: 14px;
     color: #30d15888;
-    margin-top: 4px;
+    margin-top: 6px;
     transition: color 0.3s;
   }
-  .controls {
+  #bottom {
     display: flex;
-    gap: 14px;
-    margin-top: 36px;
+    justify-content: center;
+    width: 100%;
   }
   .ctrl-btn {
     background: #1c1c1c;
@@ -87,28 +100,30 @@
     border-radius: 22px;
     color: #fff;
     font-size: 15px;
-    padding: 10px 28px;
+    padding: 10px 40px;
     cursor: pointer;
     font-family: inherit;
   }
   .ctrl-btn:active { opacity: 0.6; }
-  #start-btn { opacity: 1; transition: opacity 0.3s; }
 </style>
 </head>
 <body>
 
-<div id="label">Current Bid</div>
-<div id="amount">$20,000,000</div>
-<div id="status"></div>
-
-<div id="buy-btn" onclick="handleBtn()">
-  <div id="btn-main">BUY</div>
-  <div id="btn-sub">tap to buy now</div>
+<div id="top">
+  <div id="label">Current Bid</div>
+  <div id="amount">$20 million</div>
+  <div id="status"></div>
 </div>
 
-<div class="controls">
+<div id="middle">
+  <div id="buy-btn" onclick="handleBtn()">
+    <div id="btn-main">Start Auction</div>
+    <div id="btn-sub">tap to begin</div>
+  </div>
+</div>
+
+<div id="bottom">
   <button class="ctrl-btn" onclick="resetTimer()">Reset</button>
-  <button class="ctrl-btn" id="start-btn" onclick="startTimer()">Start</button>
 </div>
 
 <script>
@@ -118,12 +133,13 @@ let current = START, running = false, bought = false, timeout = null;
 
 function easeInterval(step) {
   const t = step / (STEPS - 1);
-  return 600 + t * t * 800;
+  return 1200 + t * t * 900;
 }
 
 function fmt(m) {
   if (m <= 0) return '$0';
-  return '$' + (m * 1000000).toLocaleString('en-US');
+  if (m === 1) return '$1 million';
+  return '$' + m + ' million';
 }
 
 function setAmountColor(m) {
@@ -145,8 +161,8 @@ function setIdleBtn() {
   b.style.borderColor = '#30d158';
   b.style.background = '#0a1f0a';
   document.getElementById('btn-main').style.color = '#30d158';
-  document.getElementById('btn-main').textContent = 'BUY';
-  document.getElementById('btn-sub').textContent = 'tap to buy now';
+  document.getElementById('btn-main').textContent = 'Start Auction';
+  document.getElementById('btn-sub').textContent = 'tap to begin';
   document.getElementById('btn-sub').style.color = '#30d15888';
 }
 
@@ -176,19 +192,17 @@ function tick(step) {
   render();
   if (current <= 0) {
     running = false;
-    document.getElementById('status').textContent = "sold at $0!";
+    document.getElementById('status').textContent = 'sold at $0!';
     setIdleBtn();
-    document.getElementById('start-btn').style.opacity = '0.4';
     return;
   }
-  timeout = setTimeout(() => tick(step + 1), easeInterval(step));
+  timeout = setTimeout(() => tick(step + 1), easeInterval(Math.min(step, STEPS - 1)));
 }
 
 function startTimer() {
   if (running || bought || current <= 0) return;
   running = true;
   document.getElementById('status').textContent = 'counting down…';
-  document.getElementById('start-btn').style.opacity = '0.4';
   setRunningBtn();
   timeout = setTimeout(() => tick(0), easeInterval(0));
 }
@@ -208,7 +222,6 @@ function resetTimer() {
   clearTimeout(timeout);
   running = false; bought = false; current = START;
   document.getElementById('status').textContent = '';
-  document.getElementById('start-btn').style.opacity = '1';
   document.getElementById('amount').style.color = '#fff';
   setIdleBtn();
   render();
