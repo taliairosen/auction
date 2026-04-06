@@ -60,7 +60,9 @@
     transition:color 0.4s;
     color:#30d158;
     line-height:1;
-    margin-bottom:6vw;
+    margin-bottom:9vw;
+    text-align:center;
+    width:100%;
   }
   #amount-number {
     font-size:184px;
@@ -83,7 +85,7 @@
     display:flex;
     justify-content:center;
     padding-bottom:10px;
-    margin-bottom:8px;
+    margin-bottom:20px;
   }
   .ctrl-btn {
     background:#222;
@@ -166,6 +168,11 @@ function applyTheme(theme){
     act.style.color='#5ac8fa'; act.textContent='SOLD!';
     document.getElementById('amount-number').style.color='#5ac8fa';
     unit.style.color='#5ac8fa88';
+  } else if(theme==='nosale'){
+    b.style.borderColor='#888'; b.style.background='#111';
+    act.style.color='#888'; act.textContent='No Sale';
+    document.getElementById('amount-number').style.color='#555';
+    unit.style.color='#44444488';
   }
 }
 
@@ -175,9 +182,8 @@ function tick(step){
   render();
   if(current<=0){
     running=false;
-    document.getElementById('status').textContent='sold at 0!';
-    applyTheme('sold');
-    launchFireworks();
+    document.getElementById('status').textContent='no sale.';
+    applyTheme('nosale');
     return;
   }
   timeout=setTimeout(()=>tick(step+1), easeInterval(step));
