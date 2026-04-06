@@ -131,19 +131,16 @@ let current=START, running=false, bought=false, timeout=null;
 let particles=[], animFrame=null, fwActive=false;
 
 function easeInterval(step){
+  const m=START-step;
   const t=Math.min(step,STEPS-1)/(STEPS-1);
-  return 700+t*t*700;
+  const base=700+t*t*700;
+  return (m>=8&&m<=14)?base+150:base;
 }
 
 function fmt(m){ return m<=0?'0':''+m; }
 
 function setAmountColor(m){
-  const pct=m/START;
-  const el=document.getElementById('amount-number');
-  if(pct>0.6) el.style.color='#fff';
-  else if(pct>0.3) el.style.color='#ffd60a';
-  else if(pct>0.1) el.style.color='#ff9f0a';
-  else el.style.color='#ff453a';
+  document.getElementById('amount-number').style.color='#fff';
 }
 
 function render(){
