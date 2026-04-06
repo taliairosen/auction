@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Auction">
+<title>Auction Timer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #000;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 20px);
+  }
+  #label {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  #amount {
+    font-size: 52px;
+    font-weight: 200;
+    letter-spacing: -2px;
+    color: #fff;
+    transition: color 0.4s;
+    margin-bottom: 6px;
+    text-align: center;
+    padding: 0 10px;
+  }
+  #status {
+    font-size: 14px;
+    color: #555;
+    height: 20px;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+  #buy-btn {
+    width: 72vw;
+    height: 72vw;
+    max-width: 310px;
+    max-height: 310px;
+    border-radius: 50%;
+    border: 6px solid #30d158;
+    background: #0a1f0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.3s, background 0.3s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #buy-btn:active { transform: scale(0.94); }
+  #btn-main {
+    font-size: 58px;
+    font-weight: 600;
+    color: #30d158;
+    letter-spacing: -1px;
+    transition: color 0.3s;
+  }
+  #btn-sub {
+    font-size: 14px;
+    color: #30d15888;
+    margin-top: 4px;
+    transition: color 0.3s;
+  }
+  .controls {
+    display: flex;
+    gap: 14px;
+    margin-top: 36px;
+  }
+  .ctrl-btn {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 22px;
+    color: #fff;
+    font-size: 15px;
+    padding: 10px 28px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .ctrl-btn:active { opacity: 0.6; }
+  #start-btn { opacity: 1; transition: opacity 0.3s; }
+</style>
+</head>
+<body>
+
+<div id="label">Current Bid</div>
+<div id="amount">$20,000,000</div>
+<div id="status"></div>
+
+<div id="buy-btn" onclick="handleBtn()">
+  <div id="btn-main">BUY</div>
+  <div id="btn-sub">tap to buy now</div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="resetTimer()">Reset</button>
+  <button class="ctrl-btn" id="start-btn" onclick="startTimer()">Start</button>
+</div>
+
+<script>
+const START = 20;
+const STEPS = 20;
+let current = START, running = false, bought = false, timeout = null;
+
+function easeInterval(step) {
+  const t = step / (STEPS - 1);
+  return 600 + t * t * 800;
+}
+
+function fmt(m) {
+  if (m <= 0) return '$0';
+  return '$' + (m * 1000000).toLocaleString('en-US');
+}
+
+function setAmountColor(m) {
+  const pct = m / START;
+  const el = document.getElementById('amount');
+  if (pct > 0.6) el.style.color = '#fff';
+  else if (pct > 0.3) el.style.color = '#ffd60a';
+  else if (pct > 0.1) el.style.color = '#ff9f0a';
+  else el.style.color = '#ff3b30';
+}
+
+function render() {
+  document.getElementById('amount').textContent = fmt(current);
+  setAmountColor(current);
+}
+
+function setIdleBtn() {
+  const b = document.getElementById('buy-btn');
+  b.style.borderColor = '#30d158';
+  b.style.background = '#0a1f0a';
+  document.getElementById('btn-main').style.color = '#30d158';
+  document.getElementById('btn-main').textContent = 'BUY';
+  document.getElementById('btn-sub').textContent = 'tap to buy now';
+  document.getElementById('btn-sub').style.color = '#30d15888';
+}
+
+function setRunningBtn() {
+  const b = document.getElementById('buy-btn');
+  b.style.borderColor = '#ff3b30';
+  b.style.background = '#1f0a0a';
+  document.getElementById('btn-main').style.color = '#ff3b30';
+  document.getElementById('btn-main').textContent = 'BUY';
+  document.getElementById('btn-sub').textContent = 'tap to buy now';
+  document.getElementById('btn-sub').style.color = '#ff3b3088';
+}
+
+function setSoldBtn() {
+  const b = document.getElementById('buy-btn');
+  b.style.borderColor = '#30d158';
+  b.style.background = '#0a1f0a';
+  document.getElementById('btn-main').style.color = '#30d158';
+  document.getElementById('btn-main').textContent = 'SOLD!';
+  document.getElementById('btn-sub').textContent = fmt(current);
+  document.getElementById('btn-sub').style.color = '#30d158bb';
+}
+
+function tick(step) {
+  if (!running) return;
+  current--;
+  render();
+  if (current <= 0) {
+    running = false;
+    document.getElementById('status').textContent = "sold at $0!";
+    setIdleBtn();
+    document.getElementById('start-btn').style.opacity = '0.4';
+    return;
+  }
+  timeout = setTimeout(() => tick(step + 1), easeInterval(step));
+}
+
+function startTimer() {
+  if (running || bought || current <= 0) return;
+  running = true;
+  document.getElementById('status').textContent = 'counting down…';
+  document.getElementById('start-btn').style.opacity = '0.4';
+  setRunningBtn();
+  timeout = setTimeout(() => tick(0), easeInterval(0));
+}
+
+function handleBtn() {
+  if (!running && !bought) { startTimer(); return; }
+  if (running) {
+    clearTimeout(timeout);
+    running = false;
+    bought = true;
+    document.getElementById('status').textContent = 'congratulations!';
+    setSoldBtn();
+  }
+}
+
+function resetTimer() {
+  clearTimeout(timeout);
+  running = false; bought = false; current = START;
+  document.getElementById('status').textContent = '';
+  document.getElementById('start-btn').style.opacity = '1';
+  document.getElementById('amount').style.color = '#fff';
+  setIdleBtn();
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
