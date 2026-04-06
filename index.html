@@ -45,8 +45,8 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:flex-start;
-    padding-top:9vw;
+    justify-content:center;
+    padding-top:0;
     cursor:pointer;
     transition:transform 0.12s, border-color 0.4s, background 0.4s;
     user-select:none;
@@ -60,12 +60,10 @@
     transition:color 0.4s;
     color:#30d158;
     line-height:1;
-    margin-bottom:9vw;
-    text-align:center;
-    width:100%;
+    margin-bottom:6vw;
   }
   #amount-number {
-    font-size:184px;
+    font-size:239px;
     font-weight:200;
     letter-spacing:-8px;
     color:#fff;
@@ -189,7 +187,8 @@ function tick(step){
 function startTimer(){
   if(running||bought||current<=0) return;
   running=true;
-  document.getElementById('status').textContent='counting down…';
+      document.getElementById('status').textContent='';
+
   applyTheme('running');
   timeout=setTimeout(()=>tick(0), easeInterval(0));
 }
@@ -199,7 +198,7 @@ function handleBtn(){
   if(running){
     clearTimeout(timeout);
     running=false; bought=true;
-    document.getElementById('status').textContent='congratulations!';
+    document.getElementById('status').textContent='';
     applyTheme('sold');
     launchFireworks();
   }
