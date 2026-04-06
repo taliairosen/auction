@@ -8,116 +8,134 @@
 <meta name="apple-mobile-web-app-title" content="Auction">
 <title>Auction Timer</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body {
-    background: #000;
-    color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    overflow: hidden;
-    padding: env(safe-area-inset-top, 40px) 0 env(safe-area-inset-bottom, 30px);
+    background:#000;
+    color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    overflow:hidden;
+    padding:env(safe-area-inset-top,36px) 0 env(safe-area-inset-bottom,24px);
   }
   #top {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    padding-top:4px;
   }
   #label {
-    font-size: 13px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #666;
-    margin-bottom: 10px;
-  }
-  #amount {
-    font-size: 58px;
-    font-weight: 200;
-    letter-spacing: -2px;
-    color: #fff;
-    transition: color 0.4s;
-    text-align: center;
-    padding: 0 10px;
+    font-size:12px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:#555;
   }
   #status {
-    font-size: 14px;
-    color: #555;
-    height: 20px;
-    margin-top: 6px;
-    text-align: center;
+    font-size:14px;
+    color:#555;
+    height:18px;
+    text-align:center;
   }
   #middle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    padding:8px 0;
   }
   #buy-btn {
-    width: 72vw;
-    height: 72vw;
-    max-width: 310px;
-    max-height: 310px;
-    border-radius: 50%;
-    border: 6px solid #30d158;
-    background: #0a1f0a;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.1s, border-color 0.3s, background 0.3s;
-    user-select: none;
-    -webkit-user-select: none;
+    width:88vw;
+    height:88vw;
+    max-width:400px;
+    max-height:400px;
+    border-radius:50%;
+    border:7px solid #30d158;
+    background:#0a1f0a;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:transform 0.12s, border-color 0.4s, background 0.4s;
+    user-select:none;
+    -webkit-user-select:none;
+    position:relative;
+    gap:2px;
   }
-  #buy-btn:active { transform: scale(0.94); }
-  #btn-main {
-    font-size: 48px;
-    font-weight: 600;
-    color: #30d158;
-    letter-spacing: -1px;
-    transition: color 0.3s;
-    text-align: center;
-    padding: 0 20px;
-    line-height: 1.1;
+  #buy-btn:active { transform:scale(0.96); }
+  #btn-action {
+    font-size:36px;
+    font-weight:600;
+    letter-spacing:0px;
+    transition:color 0.4s;
+    color:#30d158;
+    line-height:1;
+  }
+  #amount-number {
+    font-size:86px;
+    font-weight:200;
+    letter-spacing:-4px;
+    color:#fff;
+    line-height:1;
+    transition:color 0.4s;
+  }
+  #amount-unit {
+    font-size:22px;
+    font-weight:300;
+    color:#aaa;
+    letter-spacing:1px;
+    line-height:1;
+    transition:color 0.4s;
   }
   #btn-sub {
-    font-size: 14px;
-    color: #30d15888;
-    margin-top: 6px;
-    transition: color 0.3s;
+    font-size:13px;
+    color:#30d15877;
+    margin-top:6px;
+    transition:color 0.4s;
+    line-height:1;
   }
   #bottom {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+    display:flex;
+    justify-content:center;
+    padding-bottom:8px;
   }
   .ctrl-btn {
-    background: #1c1c1c;
-    border: 1px solid #333;
-    border-radius: 22px;
-    color: #fff;
-    font-size: 15px;
-    padding: 10px 40px;
-    cursor: pointer;
-    font-family: inherit;
+    background:#222;
+    border:1px solid #444;
+    border-radius:26px;
+    color:#fff;
+    font-size:17px;
+    padding:13px 52px;
+    cursor:pointer;
+    font-family:inherit;
   }
-  .ctrl-btn:active { opacity: 0.6; }
+  .ctrl-btn:active { opacity:0.5; }
+  canvas {
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    z-index:999;
+  }
 </style>
 </head>
 <body>
 
 <div id="top">
   <div id="label">Current Bid</div>
-  <div id="amount">$20 million</div>
   <div id="status"></div>
 </div>
 
 <div id="middle">
   <div id="buy-btn" onclick="handleBtn()">
-    <div id="btn-main">Start Auction</div>
+    <div id="btn-action">Start Auction</div>
+    <div id="amount-number">$20</div>
+    <div id="amount-unit">million</div>
     <div id="btn-sub">tap to begin</div>
   </div>
 </div>
@@ -126,108 +144,144 @@
   <button class="ctrl-btn" onclick="resetTimer()">Reset</button>
 </div>
 
+<canvas id="fw"></canvas>
+
 <script>
-const START = 20;
-const STEPS = 20;
-let current = START, running = false, bought = false, timeout = null;
+const START=20, STEPS=20;
+let current=START, running=false, bought=false, timeout=null;
+let particles=[], animFrame=null, fwActive=false;
 
-function easeInterval(step) {
-  const t = step / (STEPS - 1);
-  return 1200 + t * t * 900;
+function easeInterval(step){
+  const t=Math.min(step,STEPS-1)/(STEPS-1);
+  return 1200+t*t*900;
 }
 
-function fmt(m) {
-  if (m <= 0) return '$0';
-  if (m === 1) return '$1 million';
-  return '$' + m + ' million';
+function fmt(m){ return m<=0?'$0':'$'+m; }
+function fmtUnit(m){ return m<=0?'':m===1?'million':'million'; }
+
+function setAmountColor(m){
+  const pct=m/START;
+  const el=document.getElementById('amount-number');
+  if(pct>0.6) el.style.color='#fff';
+  else if(pct>0.3) el.style.color='#ffd60a';
+  else if(pct>0.1) el.style.color='#ff9f0a';
+  else el.style.color='#ff453a';
 }
 
-function setAmountColor(m) {
-  const pct = m / START;
-  const el = document.getElementById('amount');
-  if (pct > 0.6) el.style.color = '#fff';
-  else if (pct > 0.3) el.style.color = '#ffd60a';
-  else if (pct > 0.1) el.style.color = '#ff9f0a';
-  else el.style.color = '#ff3b30';
-}
-
-function render() {
-  document.getElementById('amount').textContent = fmt(current);
+function render(){
+  document.getElementById('amount-number').textContent=fmt(current);
+  document.getElementById('amount-unit').textContent=fmtUnit(current);
   setAmountColor(current);
 }
 
-function setIdleBtn() {
-  const b = document.getElementById('buy-btn');
-  b.style.borderColor = '#30d158';
-  b.style.background = '#0a1f0a';
-  document.getElementById('btn-main').style.color = '#30d158';
-  document.getElementById('btn-main').textContent = 'Start Auction';
-  document.getElementById('btn-sub').textContent = 'tap to begin';
-  document.getElementById('btn-sub').style.color = '#30d15888';
+function applyTheme(theme){
+  const b=document.getElementById('buy-btn');
+  const act=document.getElementById('btn-action');
+  const sub=document.getElementById('btn-sub');
+  if(theme==='idle'){
+    b.style.borderColor='#30d158'; b.style.background='#0a1f0a';
+    act.style.color='#30d158'; act.textContent='Start Auction';
+    sub.textContent='tap to begin'; sub.style.color='#30d15877';
+  } else if(theme==='running'){
+    b.style.borderColor='#ff9f0a'; b.style.background='#1f140a';
+    act.style.color='#ff9f0a'; act.textContent='BUY';
+    sub.textContent='tap to buy now'; sub.style.color='#ff9f0a77';
+  } else if(theme==='sold'){
+    b.style.borderColor='#5ac8fa'; b.style.background='#0a1a2a';
+    act.style.color='#5ac8fa'; act.textContent='SOLD!';
+    sub.textContent=fmt(current)+' million'; sub.style.color='#5ac8faaa';
+    document.getElementById('amount-number').style.color='#5ac8fa';
+    document.getElementById('amount-unit').style.color='#5ac8fa88';
+  }
 }
 
-function setRunningBtn() {
-  const b = document.getElementById('buy-btn');
-  b.style.borderColor = '#ff3b30';
-  b.style.background = '#1f0a0a';
-  document.getElementById('btn-main').style.color = '#ff3b30';
-  document.getElementById('btn-main').textContent = 'BUY';
-  document.getElementById('btn-sub').textContent = 'tap to buy now';
-  document.getElementById('btn-sub').style.color = '#ff3b3088';
-}
-
-function setSoldBtn() {
-  const b = document.getElementById('buy-btn');
-  b.style.borderColor = '#30d158';
-  b.style.background = '#0a1f0a';
-  document.getElementById('btn-main').style.color = '#30d158';
-  document.getElementById('btn-main').textContent = 'SOLD!';
-  document.getElementById('btn-sub').textContent = fmt(current);
-  document.getElementById('btn-sub').style.color = '#30d158bb';
-}
-
-function tick(step) {
-  if (!running) return;
+function tick(step){
+  if(!running) return;
   current--;
   render();
-  if (current <= 0) {
-    running = false;
-    document.getElementById('status').textContent = 'sold at $0!';
-    setIdleBtn();
+  if(current<=0){
+    running=false;
+    document.getElementById('status').textContent='sold at $0!';
+    applyTheme('sold');
+    launchFireworks();
     return;
   }
-  timeout = setTimeout(() => tick(step + 1), easeInterval(Math.min(step, STEPS - 1)));
+  timeout=setTimeout(()=>tick(step+1), easeInterval(step));
 }
 
-function startTimer() {
-  if (running || bought || current <= 0) return;
-  running = true;
-  document.getElementById('status').textContent = 'counting down…';
-  setRunningBtn();
-  timeout = setTimeout(() => tick(0), easeInterval(0));
+function startTimer(){
+  if(running||bought||current<=0) return;
+  running=true;
+  document.getElementById('status').textContent='counting down…';
+  applyTheme('running');
+  timeout=setTimeout(()=>tick(0), easeInterval(0));
 }
 
-function handleBtn() {
-  if (!running && !bought) { startTimer(); return; }
-  if (running) {
+function handleBtn(){
+  if(!running&&!bought){ startTimer(); return; }
+  if(running){
     clearTimeout(timeout);
-    running = false;
-    bought = true;
-    document.getElementById('status').textContent = 'congratulations!';
-    setSoldBtn();
+    running=false; bought=true;
+    document.getElementById('status').textContent='congratulations!';
+    applyTheme('sold');
+    launchFireworks();
   }
 }
 
-function resetTimer() {
+function resetTimer(){
   clearTimeout(timeout);
-  running = false; bought = false; current = START;
-  document.getElementById('status').textContent = '';
-  document.getElementById('amount').style.color = '#fff';
-  setIdleBtn();
+  cancelAnimationFrame(animFrame);
+  fwActive=false; particles=[];
+  const cv=document.getElementById('fw');
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  running=false; bought=false; current=START;
+  document.getElementById('status').textContent='';
+  document.getElementById('amount-number').style.color='#fff';
+  document.getElementById('amount-unit').style.color='#aaa';
+  applyTheme('idle');
   render();
 }
 
-render();
+/* Fireworks */
+function launchFireworks(){
+  const cv=document.getElementById('fw');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  fwActive=true;
+  for(let i=0;i<6;i++) setTimeout(()=>burst(cv),i*320);
+  setTimeout(()=>{fwActive=false;},2800);
+  animFrame=requestAnimationFrame(()=>drawFw(cv));
+}
+
+function burst(cv){
+  const x=cv.width*0.2+Math.random()*cv.width*0.6;
+  const y=cv.height*0.15+Math.random()*cv.height*0.45;
+  const colors=['#5ac8fa','#30d158','#ffd60a','#ff9f0a','#bf5af2','#ff6b6b'];
+  const c=colors[Math.floor(Math.random()*colors.length)];
+  for(let i=0;i<40;i++){
+    const angle=Math.random()*Math.PI*2;
+    const spd=2+Math.random()*5;
+    particles.push({x,y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,alpha:1,color:c,r:2+Math.random()*2});
+  }
+}
+
+function drawFw(cv){
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  particles=particles.filter(p=>p.alpha>0.02);
+  for(const p of particles){
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.vx*=0.97; p.alpha-=0.018;
+    ctx.globalAlpha=p.alpha;
+    ctx.fillStyle=p.color;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  if(particles.length>0||fwActive) animFrame=requestAnimationFrame(()=>drawFw(cv));
+  else ctx.clearRect(0,0,cv.width,cv.height);
+}
+
+render(); applyTheme('idle');
 </script>
 </body>
 </html>
