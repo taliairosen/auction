@@ -105,6 +105,36 @@
     pointer-events:none;
     z-index:999;
   }
+  #fp-overlay {
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  #fp-wrap {
+    position:absolute;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    transform:translate(-50%,-50%);
+  }
+  #fp-ripple1, #fp-ripple2, #fp-ripple3 {
+    position:absolute;
+    border-radius:50%;
+    border:3px solid #ffd60a;
+    opacity:0;
+    width:120px; height:120px;
+  }
+  #fp-svg {
+    width:110px;
+    height:110px;
+    opacity:0;
+    filter:drop-shadow(0 0 12px #ffd60a);
+  }
 </style>
 </head>
 <body>
@@ -112,7 +142,7 @@
 <div id="status"></div>
 
 <div id="middle">
-  <div id="buy-btn" onclick="handleBtn()">
+  <div id="buy-btn" onclick="handleBtn(event)">
     <div id="btn-action">Start Auction</div>
     <div id="amount-number">20</div>
     <div id="amount-unit">million</div>
@@ -124,6 +154,24 @@
 </div>
 
 <canvas id="fw"></canvas>
+
+<div id="fp-overlay">
+  <div id="fp-wrap">
+    <div id="fp-ripple1"></div>
+    <div id="fp-ripple2"></div>
+    <div id="fp-ripple3"></div>
+    <svg id="fp-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#ffd60a" stroke-linecap="round">
+      <path stroke-width="2.8" d="M50 12 C28 12 14 28 14 50 C14 72 28 88 50 88 C72 88 86 72 86 50"/>
+      <path stroke-width="2.8" d="M50 22 C33 22 22 35 22 50 C22 65 30 78 44 83"/>
+      <path stroke-width="2.8" d="M50 32 C38 32 30 40 30 50 C30 60 35 70 44 75"/>
+      <path stroke-width="2.8" d="M50 32 C62 32 70 40 70 50 C70 63 62 74 50 78 C44 80 38 79 33 76"/>
+      <path stroke-width="2.8" d="M50 42 C44 42 38 46 38 52 C38 60 44 66 50 68 C56 66 62 60 62 52 C62 46 56 42 50 42Z"/>
+      <path stroke-width="2.8" d="M50 12 C60 12 68 16 74 22"/>
+      <path stroke-width="2.8" d="M78 30 C82 36 86 43 86 50 C86 58 83 66 78 72"/>
+      <path stroke-width="2.8" d="M56 83 C63 80 70 74 74 66"/>
+    </svg>
+  </div>
+</div>
 
 <script>
 const START=20, STEPS=20;
@@ -195,13 +243,14 @@ function startTimer(){
   timeout=setTimeout(()=>tick(0), easeInterval(0));
 }
 
-function handleBtn(){
+function handleBtn(e){
   if(!running&&!bought){ startTimer(); return; }
   if(running){
     clearTimeout(timeout);
     running=false; bought=true;
     document.getElementById('status').textContent='';
     applyTheme('sold');
+    showFingerprint(e);
     launchFireworks();
   }
 }
@@ -220,7 +269,46 @@ function resetTimer(){
   render();
 }
 
-function launchFireworks(){
+function showFingerprint(e){
+  const wrap=document.getElementById('fp-wrap');
+  const fpSvg=document.getElementById('fp-svg');
+  const r1=document.getElementById('fp-ripple1');
+  const r2=document.getElementById('fp-ripple2');
+  const r3=document.getElementById('fp-ripple3');
+  let x,y;
+  if(e&&e.changedTouches&&e.changedTouches.length){
+    x=e.changedTouches[0].clientX; y=e.changedTouches[0].clientY;
+  } else if(e&&e.clientX){
+    x=e.clientX; y=e.clientY;
+  } else {
+    x=window.innerWidth/2; y=window.innerHeight/2;
+  }
+  wrap.style.left=x+'px'; wrap.style.top=y+'px';
+  wrap.style.display='flex';
+  [r1,r2,r3].forEach(r=>{ r.style.transition='none'; r.style.opacity='0'; r.style.transform='scale(0)'; });
+  fpSvg.style.transition='none'; fpSvg.style.opacity='0'; fpSvg.style.transform='scale(0.4)';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    fpSvg.style.transition='opacity 0.35s ease, transform 0.35s ease';
+    fpSvg.style.opacity='1'; fpSvg.style.transform='scale(1)';
+    [[r1,0,1.8],[r2,180,2.4],[r3,360,3.0]].forEach(([r,delay,scale])=>{
+      setTimeout(()=>{
+        r.style.transition='opacity 0.15s ease, transform 0.9s ease';
+        r.style.opacity='0.8'; r.style.transform='scale(1)';
+        setTimeout(()=>{
+          r.style.transition='opacity 0.6s ease, transform 0.9s ease';
+          r.style.opacity='0'; r.style.transform='scale('+scale+')';
+        },150);
+      },delay);
+    });
+    setTimeout(()=>{
+      fpSvg.style.transition='opacity 1s ease';
+      fpSvg.style.opacity='0';
+      setTimeout(()=>{ wrap.style.display='none'; },1000);
+    },2200);
+  }));
+}
+
+
   const cv=document.getElementById('fw');
   cv.width=window.innerWidth; cv.height=window.innerHeight;
   fwActive=true;
