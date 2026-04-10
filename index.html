@@ -235,39 +235,56 @@ function showFingerprint(cx,cy){
     ctx.save();
     ctx.globalAlpha=alpha;
     ctx.strokeStyle='#ffd60a';
-    ctx.lineWidth=2.6;
+    ctx.lineWidth=4.5;
     ctx.lineCap='round';
+    ctx.lineJoin='round';
     ctx.translate(cx,cy);
     ctx.scale(scale,scale);
 
-    // core whorl center
-    ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.stroke();
+    // Bottom chevrons (base of fingerprint)
+    ctx.beginPath(); ctx.moveTo(-18,38); ctx.lineTo(-6,48); ctx.lineTo(6,48); ctx.lineTo(18,38); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-30,30); ctx.lineTo(-18,42); ctx.lineTo(18,42); ctx.lineTo(30,30); ctx.stroke();
 
-    // tightly spaced concentric arcs simulating ridge lines
-    const ridges=[
-      {r:10, s:-0.5, e:Math.PI+0.5},
-      {r:16, s:-0.8, e:Math.PI+0.75},
-      {r:22, s:-1.0, e:Math.PI+0.95},
-      {r:28, s:-1.15, e:Math.PI+1.1},
-      {r:34, s:-1.22, e:Math.PI+1.18},
-      {r:40, s:-1.27, e:Math.PI+1.22},
-      {r:46, s:-1.3,  e:Math.PI+1.26, gap:true, gapS:0.3, gapE:0.55},
-      {r:52, s:-1.32, e:Math.PI+1.28},
-      {r:58, s:-1.33, e:Math.PI+1.29, gap:true, gapS:-0.1, gapE:0.15},
-      {r:64, s:-1.34, e:Math.PI+1.3},
-      {r:70, s:-1.35, e:Math.PI+1.31},
-      {r:76, s:-1.35, e:Math.PI+1.31, gap:true, gapS:0.6, gapE:0.85},
-    ];
+    // Rising arched ridges from bottom to top, loop style
+    // Ridge 1 - innermost tight loop
+    ctx.beginPath();
+    ctx.moveTo(-10,28);
+    ctx.bezierCurveTo(-22,18,-22,-2,-10,-10);
+    ctx.bezierCurveTo(0,-16,10,-16,18,-10);
+    ctx.bezierCurveTo(26,-2,22,16,10,26);
+    ctx.stroke();
 
-    ridges.forEach(a=>{
-      if(a.gap){
-        // draw arc in two segments skipping the gap
-        ctx.beginPath(); ctx.arc(0,0,a.r,a.s,a.gapS); ctx.stroke();
-        ctx.beginPath(); ctx.arc(0,0,a.r,a.gapE,a.e); ctx.stroke();
-      } else {
-        ctx.beginPath(); ctx.arc(0,0,a.r,a.s,a.e); ctx.stroke();
-      }
-    });
+    // Ridge 2
+    ctx.beginPath();
+    ctx.moveTo(-22,30);
+    ctx.bezierCurveTo(-38,16,-38,-8,-22,-20);
+    ctx.bezierCurveTo(-10,-30,10,-30,22,-20);
+    ctx.bezierCurveTo(38,-8,36,18,20,30);
+    ctx.stroke();
+
+    // Ridge 3
+    ctx.beginPath();
+    ctx.moveTo(-34,28);
+    ctx.bezierCurveTo(-54,12,-54,-14,-34,-28);
+    ctx.bezierCurveTo(-18,-40,18,-40,34,-28);
+    ctx.bezierCurveTo(54,-14,52,14,34,28);
+    ctx.stroke();
+
+    // Ridge 4 - outermost, open at bottom
+    ctx.beginPath();
+    ctx.moveTo(-44,16);
+    ctx.bezierCurveTo(-64,0,-62,-20,-44,-34);
+    ctx.bezierCurveTo(-26,-48,26,-48,44,-34);
+    ctx.bezierCurveTo(62,-20,62,2,44,18);
+    ctx.stroke();
+
+    // Ridge 5 - widest, open more at bottom
+    ctx.beginPath();
+    ctx.moveTo(-52,6);
+    ctx.bezierCurveTo(-72,-12,-68,-36,-50,-50);
+    ctx.bezierCurveTo(-30,-64,30,-64,50,-50);
+    ctx.bezierCurveTo(68,-36,70,-10,52,8);
+    ctx.stroke();
 
     ctx.restore();
   }
