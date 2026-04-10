@@ -46,12 +46,12 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    padding-top:0;
     cursor:pointer;
     transition:transform 0.12s, border-color 0.4s, background 0.4s;
     user-select:none;
     -webkit-user-select:none;
     position:relative;
+    overflow:hidden;
   }
   #buy-btn:active { transform:scale(0.98); }
   #btn-action {
@@ -70,7 +70,6 @@
     letter-spacing:-8px;
     color:#fff;
     line-height:0.9;
-    transition:color 0.4s;
   }
   #amount-unit {
     font-size:39px;
@@ -98,41 +97,6 @@
     font-family:inherit;
   }
   .ctrl-btn:active { opacity:0.5; }
-  canvas {
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    pointer-events:none;
-    z-index:999;
-  }
-  #fp-overlay {
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    pointer-events:none;
-    z-index:1000;
-  }
-  #fp-wrap {
-    position:absolute;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    transform:translate(-50%,-50%);
-  }
-  #fp-ripple1, #fp-ripple2, #fp-ripple3 {
-    position:absolute;
-    border-radius:50%;
-    border:3px solid #ffd60a;
-    opacity:0;
-    width:120px; height:120px;
-    pointer-events:none;
-  }
-  #fp-svg {
-    width:110px;
-    height:110px;
-    opacity:0;
-    filter:drop-shadow(0 0 12px #ffd60a);
-  }
 </style>
 </head>
 <body>
@@ -140,7 +104,7 @@
 <div id="status"></div>
 
 <div id="middle">
-  <div id="buy-btn" onclick="handleBtn(event)">
+  <div id="buy-btn">
     <div id="btn-action">Start Auction</div>
     <div id="amount-number">20</div>
     <div id="amount-unit">million</div>
@@ -151,30 +115,19 @@
   <button class="ctrl-btn" onclick="resetTimer()">Reset</button>
 </div>
 
-<canvas id="fw"></canvas>
-
-<div id="fp-overlay">
-  <div id="fp-wrap">
-    <div id="fp-ripple1"></div>
-    <div id="fp-ripple2"></div>
-    <div id="fp-ripple3"></div>
-    <svg id="fp-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#ffd60a" stroke-linecap="round">
-      <path stroke-width="2.8" d="M50 12 C28 12 14 28 14 50 C14 72 28 88 50 88 C72 88 86 72 86 50"/>
-      <path stroke-width="2.8" d="M50 22 C33 22 22 35 22 50 C22 65 30 78 44 83"/>
-      <path stroke-width="2.8" d="M50 32 C38 32 30 40 30 50 C30 60 35 70 44 75"/>
-      <path stroke-width="2.8" d="M50 32 C62 32 70 40 70 50 C70 63 62 74 50 78 C44 80 38 79 33 76"/>
-      <path stroke-width="2.8" d="M50 42 C44 42 38 46 38 52 C38 60 44 66 50 68 C56 66 62 60 62 52 C62 46 56 42 50 42Z"/>
-      <path stroke-width="2.8" d="M50 12 C60 12 68 16 74 22"/>
-      <path stroke-width="2.8" d="M78 30 C82 36 86 43 86 50 C86 58 83 66 78 72"/>
-      <path stroke-width="2.8" d="M56 83 C63 80 70 74 74 66"/>
-    </svg>
-  </div>
-</div>
+<canvas id="fw" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;"></canvas>
+<canvas id="fp-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000;"></canvas>
 
 <script>
 const START=20, STEPS=20;
 let current=START, running=false, bought=false, timeout=null;
 let particles=[], animFrame=null, fwActive=false;
+let fpAnim=null;
+
+/* Touch/click handler on the button */
+const btn=document.getElementById('buy-btn');
+btn.addEventListener('touchend', function(e){ e.preventDefault(); handleBtn(e); }, {passive:false});
+btn.addEventListener('click', function(e){ handleBtn(e); });
 
 function easeInterval(step){
   const m=START-step;
@@ -185,13 +138,8 @@ function easeInterval(step){
 
 function fmt(m){ return m<=0?'0':''+m; }
 
-function setAmountColor(m){
-  document.getElementById('amount-number').style.color='#fff';
-}
-
 function render(){
   document.getElementById('amount-number').textContent=fmt(current);
-  setAmountColor(current);
 }
 
 function applyTheme(theme){
@@ -202,6 +150,7 @@ function applyTheme(theme){
     b.style.borderColor='#30d158'; b.style.background='#0a1f0a';
     act.style.color='#30d158'; act.textContent='Start Auction';
     unit.style.color='#aaa';
+    document.getElementById('amount-number').style.color='#fff';
   } else if(theme==='running'){
     b.style.borderColor='#ff9f0a'; b.style.background='#1f140a';
     act.style.color='#ff9f0a'; act.textContent='BUY';
@@ -209,13 +158,13 @@ function applyTheme(theme){
   } else if(theme==='sold'){
     b.style.borderColor='#5ac8fa'; b.style.background='#0a1a2a';
     act.style.color='#5ac8fa'; act.textContent='SOLD!';
-    document.getElementById('amount-number').style.color='#5ac8fa';
     unit.style.color='#5ac8fa88';
+    document.getElementById('amount-number').style.color='#fff';
   } else if(theme==='nosale'){
     b.style.borderColor='#888'; b.style.background='#111';
     act.style.color='#888'; act.textContent='No Sale';
-    document.getElementById('amount-number').style.color='#555';
-    unit.style.color='#44444488';
+    unit.style.color='#55555588';
+    document.getElementById('amount-number').style.color='#fff';
   }
 }
 
@@ -225,7 +174,7 @@ function tick(step){
   render();
   if(current<=0){
     running=false;
-    document.getElementById('status').textContent='no sale.';
+    document.getElementById('status').textContent='';
     applyTheme('nosale');
     return;
   }
@@ -235,8 +184,7 @@ function tick(step){
 function startTimer(){
   if(running||bought||current<=0) return;
   running=true;
-      document.getElementById('status').textContent='';
-
+  document.getElementById('status').textContent='';
   applyTheme('running');
   timeout=setTimeout(()=>tick(0), easeInterval(0));
 }
@@ -248,7 +196,11 @@ function handleBtn(e){
     running=false; bought=true;
     document.getElementById('status').textContent='';
     applyTheme('sold');
-    showFingerprint(e);
+    let x=window.innerWidth/2, y=window.innerHeight/2;
+    if(e&&e.changedTouches&&e.changedTouches.length){
+      x=e.changedTouches[0].clientX; y=e.changedTouches[0].clientY;
+    } else if(e&&e.clientX){ x=e.clientX; y=e.clientY; }
+    showFingerprint(x,y);
     launchFireworks();
   }
 }
@@ -256,57 +208,85 @@ function handleBtn(e){
 function resetTimer(){
   clearTimeout(timeout);
   cancelAnimationFrame(animFrame);
+  cancelAnimationFrame(fpAnim);
   fwActive=false; particles=[];
-  const cv=document.getElementById('fw');
-  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  ['fw','fp-canvas'].forEach(id=>{
+    const cv=document.getElementById(id);
+    cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  });
   running=false; bought=false; current=START;
   document.getElementById('status').textContent='';
-  document.getElementById('amount-number').style.color='#fff';
-  document.getElementById('amount-unit').style.color='#aaa';
   applyTheme('idle');
   render();
 }
 
-function showFingerprint(e){
-  const wrap=document.getElementById('fp-wrap');
-  const fpSvg=document.getElementById('fp-svg');
-  const r1=document.getElementById('fp-ripple1');
-  const r2=document.getElementById('fp-ripple2');
-  const r3=document.getElementById('fp-ripple3');
-  let x,y;
-  if(e&&e.changedTouches&&e.changedTouches.length){
-    x=e.changedTouches[0].clientX; y=e.changedTouches[0].clientY;
-  } else if(e&&e.clientX){
-    x=e.clientX; y=e.clientY;
-  } else {
-    x=window.innerWidth/2; y=window.innerHeight/2;
-  }
-  wrap.style.left=x+'px'; wrap.style.top=y+'px';
-  wrap.style.display='flex';
-  [r1,r2,r3].forEach(r=>{ r.style.transition='none'; r.style.opacity='0'; r.style.transform='scale(0)'; });
-  fpSvg.style.transition='none'; fpSvg.style.opacity='0'; fpSvg.style.transform='scale(0.4)';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    fpSvg.style.transition='opacity 0.35s ease, transform 0.35s ease';
-    fpSvg.style.opacity='1'; fpSvg.style.transform='scale(1)';
-    [[r1,0,1.8],[r2,180,2.4],[r3,360,3.0]].forEach(([r,delay,scale])=>{
-      setTimeout(()=>{
-        r.style.transition='opacity 0.15s ease, transform 0.9s ease';
-        r.style.opacity='0.8'; r.style.transform='scale(1)';
-        setTimeout(()=>{
-          r.style.transition='opacity 0.6s ease, transform 0.9s ease';
-          r.style.opacity='0'; r.style.transform='scale('+scale+')';
-        },150);
-      },delay);
+/* Fingerprint */
+function showFingerprint(cx,cy){
+  const cv=document.getElementById('fp-canvas');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const ctx=cv.getContext('2d');
+  const r=55, start=performance.now();
+  const dur={fade:350,hold:1800,out:800};
+  const total=dur.fade+dur.hold+dur.out;
+  const ripples=[{delay:0,maxR:110},{delay:220,maxR:150},{delay:440,maxR:190}];
+
+  function drawFP(alpha){
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle='#ffd60a';
+    ctx.lineWidth=3;
+    ctx.lineCap='round';
+    ctx.translate(cx,cy);
+    const arcs=[
+      {rx:0,ry:0,r:14,s:-0.6,e:Math.PI+0.6},
+      {rx:0,ry:0,r:22,s:-0.9,e:Math.PI+0.9},
+      {rx:0,ry:0,r:30,s:-1.1,e:Math.PI+1.1},
+      {rx:0,ry:0,r:38,s:-1.2,e:Math.PI+1.2},
+      {rx:0,ry:0,r:46,s:-1.25,e:Math.PI+1.25},
+      {rx:0,ry:0,r:54,s:-1.3,e:Math.PI+1.3},
+    ];
+    arcs.forEach(a=>{
+      ctx.beginPath();
+      ctx.arc(a.rx,a.ry,a.r,a.s,a.e);
+      ctx.stroke();
     });
-    setTimeout(()=>{
-      fpSvg.style.transition='opacity 1s ease';
-      fpSvg.style.opacity='0';
-      setTimeout(()=>{ wrap.style.display='none'; },1000);
-    },2200);
-  }));
+    ctx.restore();
+  }
+
+  function drawRipple(elapsed, delay, maxR){
+    const t=elapsed-delay;
+    if(t<0) return;
+    const prog=Math.min(t/600,1);
+    const cr=maxR*prog;
+    const alpha=0.9*(1-prog);
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle='#ffd60a';
+    ctx.lineWidth=2.5;
+    ctx.beginPath();
+    ctx.arc(cx,cy,cr,0,Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function frame(now){
+    const elapsed=now-start;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    let fpAlpha=0;
+    if(elapsed<dur.fade) fpAlpha=elapsed/dur.fade;
+    else if(elapsed<dur.fade+dur.hold) fpAlpha=1;
+    else fpAlpha=1-((elapsed-dur.fade-dur.hold)/dur.out);
+    fpAlpha=Math.max(0,Math.min(1,fpAlpha));
+    drawFP(fpAlpha);
+    ripples.forEach(rp=>drawRipple(elapsed,rp.delay,rp.maxR));
+    if(elapsed<total+600) fpAnim=requestAnimationFrame(frame);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  }
+  fpAnim=requestAnimationFrame(frame);
 }
 
-
+/* Fireworks */
+function launchFireworks(){
   const cv=document.getElementById('fw');
   cv.width=window.innerWidth; cv.height=window.innerHeight;
   fwActive=true;
@@ -321,8 +301,7 @@ function burst(cv){
   const colors=['#5ac8fa','#30d158','#ffd60a','#ff9f0a','#bf5af2','#ff6b6b'];
   const c=colors[Math.floor(Math.random()*colors.length)];
   for(let i=0;i<40;i++){
-    const angle=Math.random()*Math.PI*2;
-    const spd=2+Math.random()*5;
+    const angle=Math.random()*Math.PI*2, spd=2+Math.random()*5;
     particles.push({x,y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,alpha:1,color:c,r:2+Math.random()*2});
   }
 }
@@ -333,11 +312,8 @@ function drawFw(cv){
   particles=particles.filter(p=>p.alpha>0.02);
   for(const p of particles){
     p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.vx*=0.97; p.alpha-=0.018;
-    ctx.globalAlpha=p.alpha;
-    ctx.fillStyle=p.color;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fill();
+    ctx.globalAlpha=p.alpha; ctx.fillStyle=p.color;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
   }
   ctx.globalAlpha=1;
   if(particles.length>0||fwActive) animFrame=requestAnimationFrame(()=>drawFw(cv));
