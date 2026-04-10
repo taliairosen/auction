@@ -225,10 +225,11 @@ function showFingerprint(cx,cy){
   const cv=document.getElementById('fp-canvas');
   cv.width=window.innerWidth; cv.height=window.innerHeight;
   const ctx=cv.getContext('2d');
+  const scale=0.7;
   const r=47, start=performance.now();
   const dur={fade:350,hold:3800,out:800};
   const total=dur.fade+dur.hold+dur.out;
-  const ripples=[{delay:0,maxR:94},{delay:220,maxR:128},{delay:440,maxR:162}];
+  const ripples=[{delay:0,maxR:66},{delay:220,maxR:90},{delay:440,maxR:113}];
 
   function drawFP(alpha){
     ctx.save();
@@ -237,6 +238,7 @@ function showFingerprint(cx,cy){
     ctx.lineWidth=2.6;
     ctx.lineCap='round';
     ctx.translate(cx,cy);
+    ctx.scale(scale,scale);
 
     // core whorl center
     ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.stroke();
